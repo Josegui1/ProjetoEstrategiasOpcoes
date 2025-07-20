@@ -15,3 +15,14 @@ def viewAdjCloseData(tickersList, initialDate, finalDate):
     plt.ylabel('Price (USD)')
     plt.grid(True)
     plt.show()
+    
+# adicionais as estatisticas em geral
+def viewData(stats):
+    print(f"Lucro médio: {stats['meanProfit']:.2f}")
+    print(f"Desvio padrão: {stats['stdProfit']:.2f}")
+    print(f"Probabilidade de lucro: {stats['probPosProfit'] * 100:.2f}%")
+    print(f"VaR 5% (quantil inferior): {stats['VaR5Pct']:.2f}")
+    print(f"VaR 95% (quantil superior): {stats['VaR95Pct']:.2f}")
+    print(f"Skewness (assimetria): {stats['skewness']:.2f}")
+    print(f"Kurtosis (curtose): {stats['kurtosis']:.2f}")
+    print(f"Sharpe Ratio: {stats['sharpeRatio']:.2f}")
