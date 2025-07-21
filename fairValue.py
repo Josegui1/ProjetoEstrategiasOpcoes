@@ -27,7 +27,7 @@ def monteCarloGMBRDPricing(S0, muMean, muStd, M, sigma,T, N):
     St = S0 * np.exp((mus - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * Z)
     
     # Retornando a media de cada caminho com
-    return np.mean(St)
+    return np.mean(St)   
 
 # Outro modelo interessante eh o de relativeValuation.Ele consiste no seguinte. Tome como proxy a media de uma
 # metrica generica dos pares de um ativo. Compare com a metrica do ativo que queremos precificar. Se menor que a
@@ -52,4 +52,6 @@ def relativeValuationSPPricing(muAsset, sigmaAsset, muPeers, sigmaPeers, S0Asset
     return fairValue
 
 # A premissa disso eh basica: Se o ativo tiver um melhor retorno/risco do que seus pares, entao ele esta subvalorizado
-# Se tiver um pior retorno/risco, está supervalorizado. Mas podemos fazer isso com varias outras metricas
+# Se tiver um pior retorno/risco, está supervalorizado. Mas podemos fazer isso com varias outras metricas, como
+# retorno, volatilidade, beta, correlacao
+

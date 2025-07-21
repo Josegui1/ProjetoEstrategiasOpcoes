@@ -271,6 +271,78 @@ def longCallButterflyBSSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
 
     return stats
 
+# Long Put Butterfly: Mesma ideia da long call, mas com opcoes de put
+def longPutButterflyMCSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+
+    # Payoff
+    payoff = np.maximum(K1 - St, 0) - 2 * np.maximum(K2 - St, 0) + np.maximum(K3 - St, 0)
+
+    # Preço das opções
+    putK1 = op.monteCarloOptionPricing(S0, K1, r, sigma, T, N, "put")
+    putK2 = op.monteCarloOptionPricing(S0, K2, r, sigma, T, N, "put")
+    putK3 = op.monteCarloOptionPricing(S0, K3, r, sigma, T, N, "put")
+
+    cost = putK1 - 2 * putK2 + putK3
+    profit = payoff - cost
+
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit)/np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color='red', linestyle='--')
+        plt.title("Lucro - Long Put Butterfly (MC)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+def longPutButterflyBSSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+
+    payoff = np.maximum(K1 - St, 0) - 2 * np.maximum(K2 - St, 0) + np.maximum(K3 - St, 0)
+
+    putK1 = op.blackScholesOptionPricing(S0, K1, r, sigma, T, "put")
+    putK2 = op.blackScholesOptionPricing(S0, K2, r, sigma, T, "put")
+    putK3 = op.blackScholesOptionPricing(S0, K3, r, sigma, T, "put")
+
+    cost = putK1 - 2 * putK2 + putK3
+    profit = payoff - cost
+
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit)/np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color='red', linestyle='--')
+        plt.title("Lucro - Long Put Butterfly (BS)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+
 # Bull Call: Compramos uma call com K1 e vendemos uma call com K2, ambas com T e K1 < K2. Se St < K1, prejuizo.
 # Se St pertence a [K1, K2], lucro parcial. Se St > K2, lucro máximo = K2 - K1 - custo. Espera-se que o ativo
 # suba, mas nao demais, afinal a estrategia limita o lucro e o prejuizo
@@ -427,6 +499,160 @@ def bearPutBSSimulation(S0, K1, K2, r, sigma, T, N, plot):
         plt.show()
 
     return stats
+
+# Long call: A estrategia mais simples que ha. Apostamos que um ativo ira subir e compramos uma opcao de call com
+# K e T. O lucro eh simplesmente max(St - K, 0) - premio pago pela call. Teoricamente ele eh ilimitado, mas o pre
+# juizo eh limitado ao pago pelo premio
+def longCallMCSimulation(S0, K, r, sigma, T, N, plot):
+    # Simulando caminhos GBM
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Calculando o payoff
+    payoff = np.maximum(St - K, 0)
+    
+    # Calculando o premio 
+    cost = op.monteCarloOptionPricing(S0, K, r, sigma, T, N, mode="call")
+    
+    # lucro 
+    profit =  payoff - cost
+    
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color="red", linestyle="--", label="Break-even")
+        plt.title("Distribuição do Lucro (Long Call - Monte Carlo)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+def longCallBSSimulation(S0, K, r, sigma, T, N, plot):
+    # Simulando caminhos GBM
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Calculando o payoff
+    payoff = np.maximum(St - K, 0)
+    
+    # Calculando o premio 
+    cost = op.blackScholesOptionPricing(S0, K, r, sigma, T, mode="call")
+    
+    # lucro 
+    profit =  payoff - cost
+    
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color="red", linestyle="--", label="Break-even")
+        plt.title("Distribuição do Lucro (Long Call - Black-Scholes)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
+    
+# Long put: A ideia aqui eh como a long call, mas com queda agora. Compramos uma opcao de put no lugar da call.
+# O lucro  eh max(K - St, 0) - premio da put
+
+def longPutMCSimulation(S0, K, r, sigma, T, N, plot):
+    # simulando caminhos
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Calculando o payoff
+    payoff = np.maximum(K - St, 0)
+    
+    # Calculando o premio
+    cost = op.monteCarloOptionPricing(S0, K, r, sigma, T, N, mode="put")
+    
+    # Encontrando o lucro 
+    profit = payoff - cost
+    
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color="red", linestyle="--", label="Break-even")
+        plt.title("Distribuição do Lucro (Long Put - Monte Carlo)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+def longPutBSSSimulation(S0, K, r, sigma, T, N, plot):
+    # simulando caminhos
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Calculando o payoff
+    payoff = np.maximum(K - St, 0)
+    
+    # Calculando o premio
+    cost = op.blackScholesOptionPricing(S0, K, r, sigma, T, N, mode="put")
+    
+    # Encontrando o lucro 
+    profit = payoff - cost
+    
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color="red", linestyle="--", label="Break-even")
+        plt.title("Distribuição do Lucro (Long Put - Black-Scholes)")
+        plt.xlabel("Lucro")
+        plt.ylabel("Densidade")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+
+    
+
 
 
 
