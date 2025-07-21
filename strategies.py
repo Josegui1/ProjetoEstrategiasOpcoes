@@ -342,6 +342,95 @@ def longPutButterflyBSSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
 
     return stats
 
+#Iron butterfly: Combinacao de uma short straddle em K2 central e uma call strangle em K1 e K3. Tem prejuizo se
+# foge do intervalo [K1, K3] e maximo lucro em K2.
+def ironButterflyMCSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
+    # Simulando caminhos
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Payoff
+    payoff = (-np.maximum(St - K2, 0) - np.maximum(K2 - St, 0) + np.maximum(St - K3, 0) + np.maximum(K1 - St, 0))
+    
+    # calculando o preco das opcoes e custo
+    callSell = op.monteCarloOptionPricing(S0, K2, r, sigma, T, N, mode="call")
+    putSell = op.monteCarloOptionPricing(S0, K2, r, sigma, T, N, mode="put")
+    callBuy = op.monteCarloOptionPricing(S0, K3, r, sigma, T, N, mode="call")
+    putBuy = op.monteCarloOptionPricing(S0, K1, r, sigma, T, N, mode="put")
+
+    # Custo
+    cost = (callSell + putSell) - (callBuy + putBuy) 
+    
+    # lucro
+    profit = payoff + cost
+    
+    # Estatisticas
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    # Visualização
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color='red', linestyle='--', label='Break-even')
+        plt.title('Distribuição do Lucro (Iron Butterfly - Monte Carlo)')
+        plt.xlabel('Lucro')
+        plt.ylabel('Densidade')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
+
+def ironButterflyBSSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
+    # Simulando caminhos
+    St = mp.GBMPaths(S0, r, sigma, T, N)
+    
+    # Payoff
+    payoff = (-np.maximum(St - K2, 0) - np.maximum(K2 - St, 0) + np.maximum(St - K3, 0) + np.maximum(K1 - St, 0))
+    
+    # calculando o preco das opcoes e custo
+    callSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, N, mode="call")
+    putSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, N, mode="put")
+    callBuy = op.blackScholesOptionPricing(S0, K3, r, sigma, T, N, mode="call")
+    putBuy = op.blackScholesOptionPricing(S0, K1, r, sigma, T, N, mode="put")
+
+    # Custo
+    cost = (callSell + putSell) - (callBuy + putBuy) 
+    
+    # lucro
+    profit = payoff + cost
+    
+    # Estatisticas
+    stats = {
+        "meanProfit": np.mean(profit),
+        "stdProfit": np.std(profit),
+        "probPosProfit": np.mean(profit > 0),
+        "VaR5Pct": np.quantile(profit, 0.05),
+        "VaR95Pct": np.quantile(profit, 0.95),
+        "skewness": sps.skew(profit),
+        "kurtosis": sps.kurtosis(profit, fisher=False),
+        "sharpeRatio": np.mean(profit) / np.std(profit) if np.std(profit) != 0 else np.nan
+    }
+
+    # Visualização
+    if plot == 1:
+        plt.hist(profit, bins=100, density=True)
+        plt.axvline(0, color='red', linestyle='--', label='Break-even')
+        plt.title('Distribuição do Lucro (Iron Butterfly - Black-Scholes)')
+        plt.xlabel('Lucro')
+        plt.ylabel('Densidade')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return stats
 
 # Bull Call: Compramos uma call com K1 e vendemos uma call com K2, ambas com T e K1 < K2. Se St < K1, prejuizo.
 # Se St pertence a [K1, K2], lucro parcial. Se St > K2, lucro máximo = K2 - K1 - custo. Espera-se que o ativo
