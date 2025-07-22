@@ -8,6 +8,7 @@ expirationDates = ticker.options
 print(expirationDates)
 
 options = ticker.option_chain(expirationDates[10])
+
 desiredColumns = ["contractSymbol", "strike"]
 
 calls = options.calls[desiredColumns]
