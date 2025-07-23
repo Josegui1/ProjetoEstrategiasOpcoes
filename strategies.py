@@ -396,10 +396,10 @@ def ironButterflyBSSimulation(S0, K1, K2, K3, r, sigma, T, N, plot):
     payoff = (-np.maximum(St - K2, 0) - np.maximum(K2 - St, 0) + np.maximum(St - K3, 0) + np.maximum(K1 - St, 0))
     
     # calculando o preco das opcoes e custo
-    callSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, N, mode="call")
-    putSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, N, mode="put")
-    callBuy = op.blackScholesOptionPricing(S0, K3, r, sigma, T, N, mode="call")
-    putBuy = op.blackScholesOptionPricing(S0, K1, r, sigma, T, N, mode="put")
+    callSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, mode="call")
+    putSell = op.blackScholesOptionPricing(S0, K2, r, sigma, T, mode="put")
+    callBuy = op.blackScholesOptionPricing(S0, K3, r, sigma, T, mode="call")
+    putBuy = op.blackScholesOptionPricing(S0, K1, r, sigma, T, mode="put")
 
     # Custo
     cost = (callSell + putSell) - (callBuy + putBuy) 
@@ -703,7 +703,7 @@ def longPutMCSimulation(S0, K, r, sigma, T, N, plot):
 
     return stats
 
-def longPutBSSSimulation(S0, K, r, sigma, T, N, plot):
+def longPutBSSimulation(S0, K, r, sigma, T, N, plot):
     # simulando caminhos
     St = mp.GBMPaths(S0, r, sigma, T, N)
     

@@ -19,6 +19,20 @@ def viewAdjCloseData(tickersList, initialDate, finalDate):
     plt.ylabel('Price (USD)')
     plt.grid(True)
     plt.show()
+ 
+# Encontra S0 atual para uso em estrategias de opcoes
+def getActualS0(tickerName):
+    data = yf.download(tickers = tickerName, period="1d", interval="1d", progress=False, auto_adjust=True)["Close"]
+    return float(data.iloc[0])
+
+# Encontra a volatilidade historica anualizada numa base de 5 anos
+def getHistoricalVolatility(tickerName):
+    window = 252 * 5  # 5 anos úteis
+    data = yf.download(tickerName, period="6y", interval="1d", auto_adjust=True)["Close"]
+    data = data.tail(window + 1)  # Garante pegar exatamente 5 anos úteis
+    log_returns = np.log(data / data.shift(1)).dropna()
+    sigma = np.std(log_returns) * np.sqrt(252)  # anualizada
+    return sigma
     
 # Fazendo um getter para dados de volatilidade implicita
 def getOptionsData(tickerName, expirationIndex, optionType, targetStrike):
@@ -49,6 +63,7 @@ def getOptionsData(tickerName, expirationIndex, optionType, targetStrike):
     optionData["optionType"] = optionType
     
     # isolando apenas dados da opcao com strike mais proximo do preco alvo 
+    optionData = optionData.copy()
     optionData["strikeDiff"] = (optionData["strike"] - targetStrike).abs()
     optionData = optionData.sort_values(by="strikeDiff")
     
@@ -67,7 +82,7 @@ def choseInterestRate(T):
     else:
         return "^FVX"
 
-# Pegando a taxa de juros e ajustando para seu uso em black-scholes
+# Pegando a taxa de juros e ajustando para seu uso em black-scholes e GBM
 def getInterestRate(T):
     ticker = choseInterestRate(T)
     data = yf.download(ticker, period="1d", interval="1d", progress=False)["Close"]
@@ -75,6 +90,28 @@ def getInterestRate(T):
     r = np.log(1 + decimalRate)
     
     return r
+
+# Pegando um 
+
+# Montando um modelo de volatilidade misto, que considera um peso para a volatilidade historica
+def getMixedVolatility(IV, HV, weight):
+    return float(weight * HV + (1 - weight) * IV)
+
+# Montando um modelo de volatilidad mista que conforme mais proximo do tempo de maturacao zerar, menos o 
+# peso exponencialmente de HV
+def getExponentialMixedVolatility(IV, HV, k, T):
+    return float(np.exp(-k * T) * HV + (1 - np.exp(-k * T)) * IV)
+
+def getBSData(tickerName, expirationIndex, targetStrike, optionType):
+    S0 = getActualS0(tickerName)
+    optionData = getOptionsData(tickerName, expirationIndex, optionType, targetStrike)
+    K = optionData["strike"]
+    sigma = optionData["impliedVolatility"]
+    T = optionData["timeToExpiration"]
+    r = getInterestRate(T)
+    
+    return S0, K, sigma, T, r, optionType
+    
     
 # adicionais as estatisticas em geral
 def viewData(stats):
@@ -86,4 +123,5 @@ def viewData(stats):
     print(f"Skewness (assimetria): {stats['skewness']:.2f}")
     print(f"Kurtosis (curtose): {stats['kurtosis']:.2f}")
     print(f"Sharpe Ratio: {stats['sharpeRatio']:.2f}")
+
 

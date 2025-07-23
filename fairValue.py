@@ -23,8 +23,8 @@ def monteCarloGMBRDPricing(S0, muMean, muStd, M, sigma,T, N):
     mus = npr.normal(muMean, muStd, M)
     
     #Simulando caminhos agora usando cada mu diferente
-    Z = npr.randn(N)
-    St = S0 * np.exp((mus - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * Z)
+    Z = npr.randn(M, N)
+    St = S0 * np.exp((mus[:, None] - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * Z)
     
     # Retornando a media de cada caminho com
     return np.mean(St)   

@@ -1,15 +1,14 @@
-# Baixando dados do yfinance considerando as novas atualizacoes e visualizando dados de adj close
-import generalFunctions as gf
-import datetime as dt
+import dataGetter as dg
+import optionPricing as op
 
+S0, K, sigma, T, r, optionType = dg.getBSData("AAPL", 3, 250, "call")
+print("=================================================================")
+print(S0)
+print(K)
+print(sigma)
+print(T)
+print(r)
+print(optionType)
 
-d1 = dt.date(2024, 1, 1)
-d2 = dt.date(2025, 1, 1)
-
-tickers = ["AAPL"]
-
-dados = gf.getAdjCloseData(tickers, d1, d2)
-
-print(dados)
-
-gf.viewAdjCloseData(tickers, d1, d2)
+o = op.blackScholesOptionPricing(S0, K, r, sigma, T, mode = optionType)
+print(o)
