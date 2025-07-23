@@ -1,5 +1,6 @@
 # Modularizando as funcoes de dados e visualizacoes
 import yfinance as yf
+import numpy as np
 from datetime import datetime
 import matplotlib.pyplot as plt
 import warnings
@@ -20,7 +21,7 @@ def viewAdjCloseData(tickersList, initialDate, finalDate):
     plt.show()
     
 # Fazendo um getter para dados de volatilidade implicita
-def optionsDataGetter(tickerName, expirationIndex, optionType, targetStrike):
+def getOptionsData(tickerName, expirationIndex, optionType, targetStrike):
     # Convertendo para o atributo plural usado no yfinance: 'calls' ou 'puts'
     optionsAttr = optionType + "s"
 
@@ -42,7 +43,7 @@ def optionsDataGetter(tickerName, expirationIndex, optionType, targetStrike):
     # Filtrando apenas as colunas desejadas e adicionando o tempo de maturacao
     desiredColumns = ["contractSymbol", "strike", "impliedVolatility"]
     optionData = data[desiredColumns]
-    optionData["daysToExpiration"] = daysToExpiration
+    optionData["timeToExpiration"] = daysToExpiration/365
     
     # Adicionando o tipo da opcao como 'call' ou 'put'
     optionData["optionType"] = optionType
@@ -54,6 +55,26 @@ def optionsDataGetter(tickerName, expirationIndex, optionType, targetStrike):
     closestData = optionData.iloc[0].drop(labels="strikeDiff")
     
     return closestData
+
+# Montando uma função que escolhe automaticamente o ticker mais adequado para uma opcao norte-americana dado o tempo
+# até a maturacao dela.Temos T <= 0.25 => IRX, tesouro 3 meses. T e [0.25, 2.5] => FVX, tesouro 5 anos. Por fim,
+# T > 2.5 => tesouro 10 anos
+def choseInterestRate(T):
+    if(T <= 0.25):
+        return "^IRX"
+    elif(T > 2.5):
+        return "^TNX"
+    else:
+        return "^FVX"
+
+# Pegando a taxa de juros e ajustando para seu uso em black-scholes
+def getInterestRate(T):
+    ticker = choseInterestRate(T)
+    data = yf.download(ticker, period="1d", interval="1d", progress=False)["Close"]
+    decimalRate = float(data.iloc[0])/100
+    r = np.log(1 + decimalRate)
+    
+    return r
     
 # adicionais as estatisticas em geral
 def viewData(stats):
@@ -65,5 +86,4 @@ def viewData(stats):
     print(f"Skewness (assimetria): {stats['skewness']:.2f}")
     print(f"Kurtosis (curtose): {stats['kurtosis']:.2f}")
     print(f"Sharpe Ratio: {stats['sharpeRatio']:.2f}")
-
 
