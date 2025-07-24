@@ -91,7 +91,25 @@ def getInterestRate(T):
     
     return r
 
-# Pegando um 
+# Pegando a media do retorno passado numa base de 5 anos
+def getMuMean(tickerName):
+    window = 252 * 5  # 5 anos úteis
+    data = yf.download(tickerName, period="6y", interval="1d", auto_adjust=True)["Close"]
+    data = data.tail(window + 1)
+    log_returns = np.log(data / data.shift(1)).dropna()
+    mu_daily = np.mean(log_returns)
+    mu_annual = mu_daily * 252
+    return mu_annual
+
+# Pegando o std do retorno passado numa base de 5 anos
+def getMuStd(tickerName):
+    window = 252 * 5
+    data = yf.download(tickerName, period="6y", interval="1d", auto_adjust=True)["Close"]
+    data = data.tail(window + 1)
+    log_returns = np.log(data / data.shift(1)).dropna()
+    std_daily = np.std(log_returns)
+    std_annual = std_daily * np.sqrt(252)
+    return std_annual
 
 # Montando um modelo de volatilidade misto, que considera um peso para a volatilidade historica
 def getMixedVolatility(IV, HV, weight):
