@@ -18,7 +18,7 @@ def monteCarloGBMPricing(S0, mu, sigma, T, N):
 
 # Uma desvantagem desse modelo eh considerar que o drift de crescimento eh constante, o que se mostra irreal
 # Para burlar isso, podemos com base na media e na variancia de mu fazer varias simulacoes. RD = randon drift
-def monteCarloGMBRDPricing(S0, muMean, muStd, M, sigma,T, N):
+def monteCarloGBMRDPricing(S0, muMean, muStd, M, sigma, T, N):
     # Simulando M mus diferentes como drift
     mus = npr.normal(muMean, muStd, M)
     

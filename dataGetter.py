@@ -128,7 +128,7 @@ def getBSData(tickerName, expirationIndex, targetStrike, optionType):
     T = optionData["timeToExpiration"]
     r = getInterestRate(T)
     
-    return S0, K, sigma, T, r, optionType
+    return S0, K, sigma, T, r
     
     
 # adicionais as estatisticas em geral
