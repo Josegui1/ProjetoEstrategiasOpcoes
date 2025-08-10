@@ -711,7 +711,8 @@ def longPutBSSimulation(S0, K, r, sigma, T, N, plot):
     payoff = np.maximum(K - St, 0)
     
     # Calculando o premio
-    cost = op.blackScholesOptionPricing(S0, K, r, sigma, T, N, mode="put")
+    cost = op.blackScholesOptionPricing(S0, K, r, sigma, T, mode="put")
+
     
     # Encontrando o lucro 
     profit = payoff - cost

@@ -57,8 +57,3 @@ def choseAndRunStrategy(ticker, targetStrike, optionType, expirationIndex, metho
     
         
     
-    
-    
-    
-    
-    
